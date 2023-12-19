@@ -18,6 +18,17 @@ def DropSamples(df:pd.DataFrame):
 
 
 def calculate_difference(df:pd.DataFrame, tumor_column = 'type'):
+    """
+    Calculate the mean difference between two groups in a DataFrame based on the specified 'tumor_column'.
+
+    Parameters:
+    - df (pd.DataFrame): Input DataFrame containing data for comparison.
+    - tumor_column (str, optional): The column defining the groups. Default is 'type'.
+
+    Returns:
+    - pd.DataFrame: A new DataFrame containing the means of each column for each group, 
+                    as well as the differences between the means of the two groups.
+    """    
     df2 = DropSamples(df).copy()
 
     means_df = df2.groupby(tumor_column).agg('mean').reset_index()
@@ -35,6 +46,15 @@ def calculate_difference(df:pd.DataFrame, tumor_column = 'type'):
 
 
 def plotSTDEV(df:pd.DataFrame, tumor_value = 'tumoral', tumor_column = 'type'):
+    """
+    Plot the standard deviation (STDEV) distribution of a specified 'tumor_value' within a DataFrame,
+    grouped by the 'tumor_column'. The function generates a boxplot and a histogram for visualizing the distribution.
+
+    Parameters:
+    - df (pd.DataFrame): Input DataFrame containing data for visualization.
+    - tumor_value (str, optional): The specific value within the 'tumor_column' for which the STDEV is plotted.
+                                  Default is 'tumoral'.
+    """
     df2 = DropSamples(df).copy()
 
     sted_df = df2.groupby(tumor_column).std().reset_index()
@@ -52,6 +72,17 @@ def plotSTDEV(df:pd.DataFrame, tumor_value = 'tumoral', tumor_column = 'type'):
 # make function to plot the thing that we talked about
 
 def getLowSTEDVList(df:pd.DataFrame, tumor_value = 'tumoral', tumor_column = 'type'):
+    """
+    Get a list of variables with a standard deviation (STDEV) less than 1 for a specific tumor group in a DataFrame.
+
+    Parameters:
+    - df (pd.DataFrame): Input DataFrame containing data for analysis.
+    - tumor_value (str, optional): The specific tumor group to analyze. Default is 'tumoral'.
+    - tumor_column (str, optional): The column defining the tumor groups. Default is 'type'.
+
+    Returns:
+    - list: A list of variables with STDEV values less than 1 for the specified tumor group.
+    """
     df2 = DropSamples(df).copy()
 
     sted_df = df2.groupby(tumor_column).std().reset_index()
@@ -61,6 +92,18 @@ def getLowSTEDVList(df:pd.DataFrame, tumor_value = 'tumoral', tumor_column = 'ty
 
 
 def getListDifferentialGenes(df:pd.DataFrame, psig=0.05, tumor_value = 'tumoral', tumor_column = 'type'):
+    """
+    Identify differentially expressed genes between a specified tumor group and the rest of the samples in a DataFrame.
+
+    Parameters:
+    - df (pd.DataFrame): Input DataFrame containing gene expression data.
+    - psig (float, optional): Significance threshold for identifying differentially expressed genes. Default is 0.05.
+    - tumor_value (str, optional): The specific tumor group for which differential expression is assessed. Default is 'tumoral'.
+    - tumor_column (str, optional): The column defining the tumor groups. Default is 'type'.
+
+    Returns:
+    - list: A list of gene names that are differentially expressed in the specified tumor group based on a t-test.
+    """    
     df2 = DropSamples(df).copy()
 
     df_cancer = df2[df2[tumor_column]==tumor_value]
@@ -76,6 +119,19 @@ def getListDifferentialGenes(df:pd.DataFrame, psig=0.05, tumor_value = 'tumoral'
 
 
 def find_correlated_genes(df:pd.DataFrame, threshold=0.95):
+    """
+    Identify and analyze genes with high correlation coefficients in a gene expression DataFrame.
+
+    Parameters:
+    - df (pd.DataFrame): Input DataFrame containing gene expression data.
+    - threshold (float, optional): The correlation coefficient threshold for identifying highly correlated genes. Default is 0.95.
+
+    Returns:
+    - Tuple: A tuple containing three elements:
+        1. List: Information about correlated genes, including column names, correlation values, and index names.
+        2. List: Names of genes to be excluded to avoid redundancy.
+        3. pd.DataFrame: The correlation matrix of the input DataFrame.
+    """
     df2 = DropSamples(df).copy()
     
     r_values = df2.corr()
@@ -102,6 +158,20 @@ def find_correlated_genes(df:pd.DataFrame, threshold=0.95):
     return correlated_genes_list, exclude_list, r_values
 
 def trainLogisticModel(df: pd.DataFrame, ColumnToPredict='type', tumor_value = 'tumoral'):
+    """
+    Train a logistic regression model to predict a specified column in a DataFrame.
+
+    Parameters:
+    - df (pd.DataFrame): Input DataFrame containing data for training and testing the model.
+    - ColumnToPredict (str, optional): The column to be predicted using logistic regression. Default is 'type'.
+    - tumor_value (str, optional): The specific tumor group to be treated as the positive label. Default is 'tumoral'.
+
+    Returns:
+    - Tuple: A tuple containing three elements:
+        1. LogisticRegression: Trained logistic regression model.
+        2. pd.DataFrame: Confusion matrix for model evaluation.
+        3. dict: Dictionary containing various classification scores (e.g., accuracy, precision, recall).
+    """
     df2 = DropSamples(df).copy()
 
     # Split into X/Y based on ColumnToPredict
@@ -126,10 +196,28 @@ def trainLogisticModel(df: pd.DataFrame, ColumnToPredict='type', tumor_value = '
     return model, cm, scores
 
 def predict(model: LogisticRegression, X, tumor_value = 'tumoral'):
+    """
+    Do not use, not ready yet. Maybe will never be ready tbh might not really need this one :)
+    """
     model, cm, scores = LogisticModelView(model=model, y_pred=model.predict(X=X), y_test=X, pos_label=tumor_value)
     return model, cm, scores
 
 def LogisticModelView(model: LogisticRegression, y_pred, y_test, pos_label):
+    """
+    Evaluate and visualize the performance of a logistic regression model using a confusion matrix.
+
+    Parameters:
+    - model (LogisticRegression): Trained logistic regression model.
+    - y_pred: Predicted values from the model.
+    - y_test: True labels for evaluation.
+    - pos_label (str): The positive label, typically the specific tumor group.
+
+    Returns:
+    - Tuple: A tuple containing three elements:
+        1. LogisticRegression: Trained logistic regression model.
+        2. pd.DataFrame: Confusion matrix for model evaluation.
+        3. dict: Dictionary containing various classification scores (e.g., accuracy, precision, recall).
+    """
     # Create Confusion Matrix
     cm = confusion_matrix(y_test, y_pred)
 
@@ -150,6 +238,18 @@ def LogisticModelView(model: LogisticRegression, y_pred, y_test, pos_label):
 
 
 def quantileTransformer(df:pd.DataFrame, qt = None):
+    """
+    Apply quantile transformation to a DataFrame, transforming numerical columns to follow a normal distribution.
+
+    Parameters:
+    - df (pd.DataFrame): Input DataFrame containing numerical data for transformation.
+    - qt (QuantileTransformer or None, optional): An existing QuantileTransformer object to apply, or None to fit a new one. Default is None.
+
+    Returns:
+    - Tuple: A tuple containing two elements:
+        1. pd.DataFrame: Transformed DataFrame with numerical columns following a normal distribution.
+        2. QuantileTransformer: The fitted or provided QuantileTransformer object.
+    """
     df_transformed = DropSamples(df).copy()
 
     if qt is None:
