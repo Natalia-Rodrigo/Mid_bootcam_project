@@ -9,6 +9,7 @@ from imblearn.under_sampling import RandomUnderSampler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.preprocessing import QuantileTransformer
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, cohen_kappa_score
 
 def DropSamples(df:pd.DataFrame):
     if 'samples' in df.columns:
@@ -101,7 +102,7 @@ def find_correlated_genes(df:pd.DataFrame, threshold=0.95):
     return correlated_genes_list, exclude_list, r_values
 
 
-def trainLogisticModel(df:pd.DataFrame, ColumnToPredict = 'type'):
+def trainLogisticModel(df:pd.DataFrame, ColumnToPredict= 'type'):
     df2 = DropSamples(df).copy()
 
     # Split into X/Y based on ColumnToPredict
@@ -113,23 +114,42 @@ def trainLogisticModel(df:pd.DataFrame, ColumnToPredict = 'type'):
     if df2[ColumnToPredict].value_counts()[0] != df2[ColumnToPredict].value_counts()[1]:
     
         rus = RandomUnderSampler(random_state=69)
-        X_train_under, y_train_under = rus.fit_resample(X_train, y_train)
+        X_train, y_train = rus.fit_resample(X_train, y_train)
+
 
     # Create LogisticRegression model
     classification = LogisticRegression(random_state=0, solver='lbfgs')
-    classification.fit(X_train_under, y_train_under)
+    classification.fit(X_train, y_train)
 
     # Create Prediction values
     y_pred = classification.predict(X=X_test)
 
+    return LogisticModelView(model=classification, y_pred=y_pred, y_test=y_test)
+
+
+def predict(model:LogisticRegression, X):
+    return LogisticModelView(model=model, y_pred=model.predict(X=X), y_test=X)
+
+def LogisticModelView(model:LogisticRegression, y_pred, y_test):
+
     # Create Confusion Matrix
     cm = confusion_matrix(y_test, y_pred)
 
-    disp = ConfusionMatrixDisplay(cm,display_labels=classification.classes_)
+    disp = ConfusionMatrixDisplay(cm,display_labels=model.classes_)
     disp.plot()
 
     plt.show()
-    return cm
+
+    # Print Precision of CM
+    scores = {
+        'accuary' : accuracy_score(y_test,y_pred),
+        'precision' : precision_score(y_test,y_pred),
+        'recall' : recall_score(y_test,y_pred),
+        'f1' : f1_score(y_test,y_pred),
+        'kappa' : cohen_kappa_score(y_test,y_pred)
+    }
+
+    return model, cm, scores
 
 
 def quantileTransformer(df:pd.DataFrame, qt = None):
