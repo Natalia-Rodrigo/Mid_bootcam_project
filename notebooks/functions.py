@@ -101,8 +101,7 @@ def find_correlated_genes(df:pd.DataFrame, threshold=0.95):
 
     return correlated_genes_list, exclude_list, r_values
 
-
-def trainLogisticModel(df:pd.DataFrame, ColumnToPredict= 'type'):
+def trainLogisticModel(df: pd.DataFrame, ColumnToPredict='type', tumor_value = 'tumoral'):
     df2 = DropSamples(df).copy()
 
     # Split into X/Y based on ColumnToPredict
@@ -112,10 +111,8 @@ def trainLogisticModel(df:pd.DataFrame, ColumnToPredict= 'type'):
 
     # Peform underSampler if values are not equal
     if df2[ColumnToPredict].value_counts()[0] != df2[ColumnToPredict].value_counts()[1]:
-    
         rus = RandomUnderSampler(random_state=69)
         X_train, y_train = rus.fit_resample(X_train, y_train)
-
 
     # Create LogisticRegression model
     classification = LogisticRegression(random_state=0, solver='lbfgs')
@@ -124,32 +121,32 @@ def trainLogisticModel(df:pd.DataFrame, ColumnToPredict= 'type'):
     # Create Prediction values
     y_pred = classification.predict(X=X_test)
 
-    return LogisticModelView(model=classification, y_pred=y_pred, y_test=y_test)
+    # return y_pred, y_test
+    model, cm, scores = LogisticModelView(model=classification, y_pred=y_pred, y_test=y_test.values, pos_label=tumor_value)
+    return model, cm, scores
 
+def predict(model: LogisticRegression, X, tumor_value = 'tumoral'):
+    model, cm, scores = LogisticModelView(model=model, y_pred=model.predict(X=X), y_test=X, pos_label=tumor_value)
+    return model, cm, scores
 
-def predict(model:LogisticRegression, X):
-    return LogisticModelView(model=model, y_pred=model.predict(X=X), y_test=X)
-
-def LogisticModelView(model:LogisticRegression, y_pred, y_test):
-
+def LogisticModelView(model: LogisticRegression, y_pred, y_test, pos_label):
     # Create Confusion Matrix
     cm = confusion_matrix(y_test, y_pred)
 
-    disp = ConfusionMatrixDisplay(cm,display_labels=model.classes_)
+    disp = ConfusionMatrixDisplay(cm, display_labels=model.classes_)
     disp.plot()
-
-    plt.show()
 
     # Print Precision of CM
     scores = {
-        'accuary' : accuracy_score(y_test,y_pred),
-        'precision' : precision_score(y_test,y_pred),
-        'recall' : recall_score(y_test,y_pred),
-        'f1' : f1_score(y_test,y_pred),
-        'kappa' : cohen_kappa_score(y_test,y_pred)
+        'accuracy': accuracy_score(y_test, y_pred),
+        'precision': precision_score(y_true=y_test, y_pred=y_pred, pos_label=pos_label),
+        'recall': recall_score(y_test, y_pred, pos_label=pos_label),
+        'f1': f1_score(y_test, y_pred, pos_label=pos_label),
+        'kappa': cohen_kappa_score(y_test, y_pred)
     }
 
     return model, cm, scores
+
 
 
 def quantileTransformer(df:pd.DataFrame, qt = None):
