@@ -151,7 +151,7 @@ def find_correlated_genes(df:pd.DataFrame, threshold=0.95):
     included_columns = []
 
     for col in correlated_genes_list:
-        if col not in included_columns:
+        if col[0] not in included_columns:
             exclude_list.append(col[0])
             included_columns.append(col[2])
 
