@@ -157,6 +157,48 @@ def find_correlated_genes(df:pd.DataFrame, threshold=0.95):
 
     return correlated_genes_list, exclude_list, r_values
 
+def find_correlated_genes_optimized(corr: pd.DataFrame, threshold=0.95):
+    """
+    Identify and analyze genes with high correlation coefficients in a gene expression DataFrame.
+    Experimental function, "optimized" from the previous. This function loops over till no mutlicollinearity is found, but will take slightly longer.
+
+    Parameters:
+    - df (pd.DataFrame): Input DataFrame containing gene expression data.
+    - threshold (float, optional): The correlation coefficient threshold for identifying highly correlated genes. Default is 0.95.
+
+    Returns:
+    - List: Names of genes to be excluded to avoid redundancy.
+    """
+    exclude_list = []
+    corr2 = corr.copy()
+
+    # Create mask over all columns
+    while True:
+        mask = (corr2.to_numpy() > threshold) & (corr2.index.to_numpy() != corr2.columns.to_numpy()[:, None])
+        correlated_columns, correlated_rows = np.where(mask)
+    
+        correlated_genes_list = {}
+        for col, index in zip(corr2.columns[correlated_columns], corr2.index[correlated_rows]):
+            count = correlated_genes_list.get(col, 0)
+            count += 1
+            correlated_genes_list[col] = count
+
+        count_df = pd.DataFrame(correlated_genes_list, index=[0]).melt().sort_values('value', ascending=False)
+        highest_col_value = count_df['value'].iloc[0]
+
+        if highest_col_value <= 1:
+            break
+
+        highest_count_genes = count_df[count_df['value'] == highest_col_value]['variable'].tolist()
+
+        exclude_list.extend(highest_count_genes)
+        corr2 = corr2.drop(highest_count_genes, axis=1)
+        corr2 = corr2.drop(highest_count_genes)
+
+        print(f"Loop completed, highest value was {highest_col_value} from genes {highest_count_genes}")
+
+    return exclude_list
+
 def trainLogisticModel(df: pd.DataFrame, ColumnToPredict='type', tumor_value = 'tumoral'):
     """
     Train a logistic regression model to predict a specified column in a DataFrame.
