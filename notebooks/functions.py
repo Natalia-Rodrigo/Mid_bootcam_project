@@ -104,7 +104,7 @@ def getListDifferentialGenes(df:pd.DataFrame, psig=0.05, tumor_value = 'tumoral'
     Returns:
     - list: A list of gene names that are differentially expressed in the specified tumor group based on a t-test.
     """    
-    df2 = DropSamples(df).copy()
+    df2 = df.copy()
 
     df_cancer = df2[df2[tumor_column]==tumor_value]
     df_normal = df2[df2[tumor_column]!=tumor_value]
@@ -151,7 +151,7 @@ def find_correlated_genes(df:pd.DataFrame, threshold=0.95):
     included_columns = []
 
     for col in correlated_genes_list:
-        if col not in included_columns:
+        if col[0] not in included_columns:
             exclude_list.append(col[0])
             included_columns.append(col[2])
 
@@ -250,7 +250,7 @@ def quantileTransformer(df:pd.DataFrame, qt = None):
         1. pd.DataFrame: Transformed DataFrame with numerical columns following a normal distribution.
         2. QuantileTransformer: The fitted or provided QuantileTransformer object.
     """
-    df_transformed = DropSamples(df).copy()
+    df_transformed = df.copy()
 
     if qt is None:
         # Fit new dataset, if none is given
