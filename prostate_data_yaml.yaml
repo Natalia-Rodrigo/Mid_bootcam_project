@@ -1,0 +1,15 @@
+data:
+  info: './notebooks/Prostate_dataset.ipynb'
+
+scalers:
+  info: 'n/a'
+
+encoders:
+  info: 'n/a'
+
+transformers:
+  info: './Transformer/tim_Prostate_GSE46602.pkl'
+
+models:
+  info: './Models/tim_Prostate_GSE46602.pkl'
+  
