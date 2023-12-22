@@ -1,0 +1,27 @@
+Raw_Data:
+  info: './notebooks/Prostate_GSE55945.ipynb'
+  info: './notebooks/Prostate_GSE46602.ipynb'
+  info: './notebooks/Prostate_GSE16515.ipynb'
+  info: './notebooks/Breast_GSE38959.ipynb'
+  info: './notebooks/Breast_GSE22820.ipynb'
+
+scalers:
+  info: 'n/a'
+
+encoders:
+  info: 'n/a'
+
+Transformers:
+  info: './Transformer/tim_Prostate_GSE46602.pkl'
+  info: './Transformer/minh_Breast_GSE22820_qt.pkl'
+
+Models:
+  info: './Models/tim_Prostate_GSE46602.pkl'
+  info: './Models/minh_Breast_GSE22820.pkl'
+  info: './Models/minh_Breast_GSE22820_qt.pkl'
+
+Slides:
+  info: './Slides/Mid Project Bootcamp.pdf'
+
+
+  
